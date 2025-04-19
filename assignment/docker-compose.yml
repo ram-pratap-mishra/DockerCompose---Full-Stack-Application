@@ -1,0 +1,48 @@
+
+services:
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - assignment
+    environment:
+      REACT_APP_BACKEND_URL: http://localhost:8000
+    restart: always  
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    networks:
+      - assignment
+    depends_on: 
+      postgres:
+          condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://rampratap:rampratap123@postgres:5432/app_db
+    restart: always
+  
+  postgres: 
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: rampratap
+      POSTGRES_PASSWORD: rampratap123
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    networks:
+      - assignment
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "rampratap"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+networks:
+  assignment:
+    driver: bridge
